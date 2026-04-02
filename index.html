@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lista de Tareas</title>
+  <!-- Estilos Css -->
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 10px;
+    }
+
+    main.app {
+      width: 100%;
+      max-width: 500px;
+      background: var(--card);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    header h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--primary);
+    }
+
+    form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      outline: none;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+    }
+
+    ul { list-style: none; padding: 0; }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9fafb;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .task { display: flex; gap: 10px; align-items: center; }
+
+    .completed span {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .delete { background: var(--danger); }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    /* parte de la pagina estilo responsive */
+    @media (max-width: 480px) {
+      header h1 { font-size: 20px; }
+    }
+
+    @media (min-width: 768px) {
+      main.app { max-width: 600px; }
+    }
+
+    @media (min-width: 1024px) {
+      main.app { max-width: 700px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <!-- interfaz de la lista de tareas -->
+    <header>
+      <h1>📝 Lista de Tareas</h1>
+    </header>
+
+    <section>
+      <form id="taskForm">
+        <input type="text" id="taskInput" placeholder="Escribe una tarea..." required />
+        <button type="submit">Agregar</button>
+      </form>
+    </section>
+
+    <section>
+      <ul id="taskList"></ul>
+    </section>
+
+  </main>
+<!-- codigo javascript para los elementos y las funciones que por ejemplo guardan tareas -->
+  <script>
+    const form = document.getElementById("taskForm");
+    const input = document.getElementById("taskInput");
+    const list = document.getElementById("taskList");
+
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+    function saveTasks() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+// funcion que renderiza tareas de la lista
+    function renderTasks() {
+      list.innerHTML = "";
+      tasks.forEach((task, index) => {
+        const li = document.createElement("li");
+        if (task.completed) li.classList.add("completed");
+
+        const taskDiv = document.createElement("div");
+        taskDiv.className = "task";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = task.completed;
+        checkbox.onchange = () => {
+          tasks[index].completed = !tasks[index].completed;
+          saveTasks();
+          renderTasks();
+        };
+// span para mostrar el resto de la tarea
+        const span = document.createElement("span");
+        span.textContent = task.text;
+        
+// eliminar tarea
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Eliminar";
+        deleteBtn.className = "delete";
+        deleteBtn.onclick = () => {
+          tasks.splice(index, 1);
+          saveTasks();
+          renderTasks();
+        };
+
+        taskDiv.appendChild(checkbox);
+        taskDiv.appendChild(span);
+
+        li.appendChild(taskDiv);
+        li.appendChild(deleteBtn);
+
+        list.appendChild(li);
+      });
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+
+      tasks.push({ text, completed: false });
+      saveTasks();
+      renderTasks();
+      input.value = "";
+    });
+
+    renderTasks();
+  </script>
+</body>
+</html>
